@@ -1,28 +1,39 @@
 import numpy as np
 from skimage.segmentation import felzenszwalb
 from .base_cue import BaseCue
+from utils.helpers import IntegralImage
 
 class Straddleness(BaseCue):
     def precompute(self):
-        # Segment image into superpixels
-        self.segments = felzenszwalb(self.image, scale=100, sigma=0.5, min_size=50)
+        # 1. Simplify segmentation to reduce label count
+        self.segments = felzenszwalb(self.image, scale=200, sigma=0.8, min_size=200)
         self.labels = np.unique(self.segments)
-        # Cache total area for each superpixel
-        self.sp_areas = {l: np.sum(self.segments == l) for l in self.labels}
+        
+        # 2. Pre-calculate Integral Images for each major superpixel
+        self.ii_maps = {}
+        self.total_areas = {}
+        
+        for l in self.labels:
+            mask = (self.segments == l).astype(np.uint8)
+            self.ii_maps[l] = IntegralImage(mask)
+            self.total_areas[l] = np.sum(mask)
 
     def score(self, window):
         y1, x1, y2, x2 = window
-        win_roi = self.segments[y1:y2, x1:x2]
         straddle_sum = 0
         
-        # Check superpixels found within the window
-        present_labels = np.unique(win_roi)
-        for l in present_labels:
-            area_inside = np.sum(win_roi == l)
-            total_area = self.sp_areas[l]
-            
-            # If a superpixel is partially inside, it's straddling
-            if 0 < area_inside < total_area:
-                straddle_sum += (area_inside / total_area)
+        # Only check labels that actually exist in the window area to save time
+        roi_labels = np.unique(self.segments[y1:y2, x1:x2])
         
-        return 1 - (straddle_sum / (len(present_labels) + 1e-9))
+        for l in roi_labels:
+            # O(1) lookup of how many pixels of this superpixel are inside the box
+            n_in = self.ii_maps[l].get_sum(y1, x1, y2, x2)
+            n_total = self.total_areas[l]
+            
+            # If the superpixel is partially in and partially out, it straddles
+            if 0 < n_in < n_total:
+                # Straddleness formula from the paper
+                straddle_sum += (n_in / n_total)
+        
+        # Higher score = Less straddling (Better object fit)
+        return 1 - (straddle_sum / (len(roi_labels) + 1e-9))
