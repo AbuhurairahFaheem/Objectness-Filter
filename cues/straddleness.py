@@ -6,7 +6,8 @@ from utils.helpers import IntegralImage
 class Straddleness(BaseCue):
     def precompute(self):
         # 1. Simplify segmentation to reduce label count
-        self.segments = felzenszwalb(self.image, scale=200, sigma=0.8, min_size=200)
+        # Larger 'scale' and 'min_size' create bigger blobs, forcing boxes to expand
+        self.segments = felzenszwalb(self.image, scale=500, sigma=0.8, min_size=1000)
         self.labels = np.unique(self.segments)
         
         # 2. Pre-calculate Integral Images for each major superpixel

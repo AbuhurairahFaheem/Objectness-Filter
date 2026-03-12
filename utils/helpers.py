@@ -13,19 +13,22 @@ class IntegralImage:
                 self.padded_ii[y2+1, x1] + self.padded_ii[y1, x1])
 
 def generate_windows(img_shape, num_windows=2000):
-    """Samples windows across different scales and aspect ratios."""
     H, W = img_shape
     windows = []
-    scales = [0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
-    ratios = [0.5, 1.0, 2.0]
+    # Force include very large scales to capture the whole car
+    scales = [0.3, 0.5, 0.7, 0.9] 
+    # Cars are horizontal: width is much larger than height (Ratio = H/W)
+    ratios = [0.3, 0.4, 0.5, 0.6] 
     
     for _ in range(num_windows):
         s = np.random.choice(scales)
         r = np.random.choice(ratios)
+        
         w = int(W * s)
         h = int(w * r)
         
         if h < H and w < W:
+            # Random jitter for placement
             y1 = np.random.randint(0, H - h)
             x1 = np.random.randint(0, W - w)
             windows.append([y1, x1, y1 + h, x1 + w])
