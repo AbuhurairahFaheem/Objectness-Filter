@@ -21,7 +21,7 @@ A standard image contains over **100,000 potential bounding boxes**. Passing all
 ### **Comparative Analysis**
 | **The Noise** | **The Signal** |
 | :--- | :--- |
-| ![Proposals Placeholder](https://via.placeholder.com/400x300?text=2000+Raw+Proposals) | ![Results Placeholder](https://via.placeholder.com/400x300?text=Top+5+Objectness+Results) |
+| ![Proposals Placeholder](data/input/CES-2023-PEUGEOT_INCEPTION_CONCEPT_2301CN202.png) | ![Results Placeholder](data/output/CES-2023-PEUGEOT_INCEPTION_CONCEPT_2301CN202.png) |
 | **2000 Sampled Windows:** A dense mesh of candidate boxes across multiple scales. | **Top 5 Candidates:** Bayesian fusion identifies the most likely "things." |
 
 ---
