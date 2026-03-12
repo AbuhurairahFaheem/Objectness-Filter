@@ -10,10 +10,8 @@ venv/
 ENV/
 
 # Data & Models (Crucial for CV)
-data/
 datasets/
 *.weights
-*.pth
 *.onnx
 *.pb
 
