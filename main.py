@@ -34,7 +34,6 @@ def process_image(img_path, output_folder):
     if img is None: return
     
     # --- PERFORMANCE: Resize to 500px width ---
-    # This is the secret to making Straddleness fast!
     scale = 500.0 / img.shape[1]
     img_small = cv2.resize(img, (500, int(img.shape[0] * scale)))
     
@@ -57,18 +56,21 @@ def process_image(img_path, output_folder):
     top_indices = keep_indices[:5]
     top_windows = windows[top_indices]
     
-    # 5. Visualization
-    canvas = img_small.copy()
-    # Draw every 20th proposal in faint blue (to show the search space)
-    for w in windows[::20]:
-        cv2.rectangle(canvas, (w[1], w[0]), (w[3], w[2]), (255, 0, 0), 1) 
+    # --- 5. VISUALIZATION 1: THE SEARCH SPACE (Blue) ---
+    blue_canvas = img_small.copy()
+    # Draw every 10th proposal to show the dense search density without total occlusion
+    for w in windows[::10]:
+        cv2.rectangle(blue_canvas, (int(w[1]), int(w[0])), (int(w[3]), int(w[2])), (255, 0, 0), 1) 
     
-    # Draw Top 5 in Bold Green
+    # --- 6. VISUALIZATION 2: THE RANKED CANDIDATES (Green) ---
+    green_canvas = img_small.copy()
     for w in top_windows:
-        cv2.rectangle(canvas, (w[1], w[0]), (w[3], w[2]), (0, 255, 0), 2)
+        cv2.rectangle(green_canvas, (int(w[1]), int(w[0])), (int(w[3]), int(w[2])), (0, 255, 0), 2)
         
-    file_name = os.path.basename(img_path)
-    cv2.imwrite(os.path.join(output_folder, file_name), canvas)
+    # Save both files
+    file_base = os.path.splitext(os.path.basename(img_path))[0]
+    cv2.imwrite(os.path.join(output_folder, f"{file_base}_search_space.jpg"), blue_canvas)
+    cv2.imwrite(os.path.join(output_folder, f"{file_base}_ranked_top5.jpg"), green_canvas)
 
 def main():
     parser = argparse.ArgumentParser()
